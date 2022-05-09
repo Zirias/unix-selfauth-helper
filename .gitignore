@@ -1,0 +1,6 @@
+*.o
+*.debug
+*.full
+.depend*
+unix-selfauth-helper
+
