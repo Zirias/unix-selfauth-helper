@@ -35,6 +35,10 @@
 
 #include <security/pam_constants.h>
 
+/* buffer for authtok from stdin, needs room for one exceeding character,
+ * so we can check for the length limit, plus nul terminator */
+char password[_PASSWORD_LEN + 2];
+
 int
 main(int argc, char *argv[])
 {
@@ -42,7 +46,6 @@ main(int argc, char *argv[])
 	struct passwd *pwd;
 	const char *func;
 	const char *user;
-	char password[_PASSWORD_LEN + 2] = { '\0' };
 
 	/* sanity check: must run privileged */
 	if (geteuid() != 0) return (1);
@@ -56,11 +59,11 @@ main(int argc, char *argv[])
 	    || (func = getenv("PAM_SM_FUNC")) == NULL) {
 		(void)fprintf(stderr, "This program is designed for "
 		    "pam_exec.so, don't invoke it directly!\n");
-		return (1);
+		return (PAM_PERM_DENIED);
 	}
 
-	/* check PAM func, succeed silently for anything exept authenticate */
-	if (strcmp(func, "pam_sm_authenticate") != 0) return (PAM_SUCCESS);
+	/* check PAM func, fail silently for anything except authenticate */
+	if (strcmp(func, "pam_sm_authenticate") != 0) return (PAM_SYSTEM_ERR);
 
 	user = getenv("PAM_USER");
 	if (user == NULL) return (PAM_USER_UNKNOWN);
@@ -72,7 +75,7 @@ main(int argc, char *argv[])
 	if (setuid(ruid) != 0) return (PAM_SYSTEM_ERR);
 	
 	/* only allow checking own password */
-	if (pwd->pw_uid != ruid) return (PAM_AUTH_ERR);
+	if (pwd->pw_uid != ruid) return (PAM_USER_UNKNOWN);
 
 	/* reject null password */
 	if (pwd->pw_passwd[0] == '\0') return (PAM_AUTH_ERR);

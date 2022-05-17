@@ -25,9 +25,9 @@ With `pam_exec`, this same behavior can be achieved without modifying
 
 ## Usage
 
-Just add a `pam_exec` call to this helper in the `authenticate` stack as
-`sufficient` *above* the call to `pam_unix`. Required options are
-`return_prog_exit_status` and `expose_authtok`.
+Just add a `pam_exec` call to this helper in the `auth` stack as `sufficient`
+*above* the call to `pam_unix`. Required options are `return_prog_exit_status`
+and `expose_authtok`.
 
 For example, if you want to use it with `xscreensaver`, your
 `/usr/local/etc/pam.d/xscreensaver` file might look something like this:
