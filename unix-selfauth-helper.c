@@ -35,20 +35,23 @@
 
 #include <security/pam_constants.h>
 
-/* buffer for authtok from stdin, needs room for one exceeding character,
- * so we can check for the length limit, plus nul terminator */
-char password[_PASSWORD_LEN + 2];
+/* buffer for authtok from stdin, needs room for one exceeding character
+ * to either hold the NUL terminator, or the last character read if the
+ * authtok exceeds the maximum password length */
+char password[_PASSWORD_LEN + 1];
+size_t pwpos;
 
 int
 main(int argc, char *argv[])
 {
 	uid_t ruid;
+	ssize_t readrc;
 	struct passwd *pwd;
 	const char *func;
 	const char *user;
 
 	/* sanity check: must run privileged */
-	if (geteuid() != 0) return (1);
+	if (geteuid() != 0) return (PAM_PERM_DENIED);
 
 	/*
 	 * sanity checks: must be invoked by normal user, stdin must be
@@ -66,7 +69,7 @@ main(int argc, char *argv[])
 	if (strcmp(func, "pam_sm_authenticate") != 0) return (PAM_SYSTEM_ERR);
 
 	user = getenv("PAM_USER");
-	if (user == NULL) return (PAM_USER_UNKNOWN);
+	if (user == NULL) return (PAM_SYSTEM_ERR);
 
 	/* read password database while privileged */
 	if ((pwd = getpwnam(user)) == NULL) return (PAM_USER_UNKNOWN);
@@ -80,13 +83,16 @@ main(int argc, char *argv[])
 	/* reject null password */
 	if (pwd->pw_passwd[0] == '\0') return (PAM_AUTH_ERR);
 
-	/* read user password from stdin */
-	if (read(STDIN_FILENO, password, sizeof(password) - 1) < 1)
-		return (PAM_AUTH_ERR);
-
-	/* reject password exceeding max length */
-	if (strnlen(password, _PASSWORD_LEN + 1) > _PASSWORD_LEN)
-		return (PAM_AUTH_ERR);
+	/* read user password from stdin, reject empty password and
+	 * password exceeding the maximum length */
+	while ((readrc = read(STDIN_FILENO, password + pwpos,
+	    sizeof(password) - pwpos))) {
+		if (readrc < 0)
+			return (PAM_SYSTEM_ERR);
+		if ((pwpos += readrc) == sizeof(password))
+			return (PAM_AUTH_ERR);
+	}
+	if (pwpos == 0) return (PAM_AUTH_ERR);
 
 	/* actually check password */
 	if (strcmp(crypt(password, pwd->pw_passwd), pwd->pw_passwd) == 0)
