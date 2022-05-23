@@ -1,0 +1,83 @@
+.Dd May 23, 2022
+.Dt UNIX-SELFAUTH-HELPER 8
+.Os
+.Sh NAME
+.Nm unix-selfauth-helper
+.Nd local self-authentication for pam_exec
+.Sh SYNOPSIS
+.Nm
+.Sh DESCRIPTION
+The
+.Nm
+utility is designed to be called by
+.Xr pam_exec 8
+and enables unprivileged authentication against the local
+.Xr passwd 5
+database for the user calling it.
+This is useful especially for screen lockers that would otherwise need their
+own suid-root helper.
+.Pp
+To use it, add it to the
+.Cm auth
+stack as
+.Cm sufficient
+.Em above
+.Xr pam_unix 8 .
+Required options for
+.Xr pam_exec 8
+are
+.Cm return_prog_exit_status
+and
+.Cm expose_authtok .
+.Sh ENVIRONMENT
+.Bl -tag -width PAM_SM_FUNC
+.It Ev PAM_SM_FUNC
+must be set to
+.Cm pam_sm_authenticate ,
+every other value is ignored with an error exit status.
+.It Ev PAM_USER
+the name of the user to authenticate, must match the user attempting the
+authentication.
+.El
+.Sh EXAMPLES
+.Bd -literal -offset indent
+auth	sufficient	pam_exec.so	\\
+	return_prog_exit_status expose_authtok \\
+	/usr/local/libexec/unix-selfauth-helper
+auth	include		system
+.Ed
+.sp
+This PAM configuration enables self-authentication in addition to whatever
+is configured system-wide for PAM.
+.Sh SEE ALSO
+.Xr passwd 5 ,
+.Xr pam_exec 8 ,
+.Xr pam_unix 8
+.Sh AUTHORS
+.An Felix Palmen Aq Mt felix@palmen-it.de
+.Sh BUGS
+This is a hack that shouldn't be necessary.
+.Pp
+The underlying problem is that PAM authentication
+.Em might
+require root privileges, depending on the modules used.
+This is typically true for
+.Xr pam_unix 8
+because it needs to read the
+.Xr passwd 5
+database.
+.Pp
+A clean solution could be an authentication service in base that's queried by
+.Xr pam_unix 8
+instead of accessing the
+.Xr passwd 5
+database directly.
+.Sh SECURITY CONSIDERATIONS
+The
+.Nm
+utility is installed suid-root, so it can access the
+.Xr passwd 5
+database.
+It drops privileges as early as possible, but it could be used for guessing
+the password of a user, if an attacker has access to an unlocked session of
+that user.

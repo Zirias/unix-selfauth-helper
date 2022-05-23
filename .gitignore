@@ -1,6 +1,7 @@
 *.o
 *.debug
 *.full
+*.gz
 .depend*
 unix-selfauth-helper
 
