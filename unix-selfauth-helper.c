@@ -53,23 +53,21 @@ main(int argc, char *argv[])
 	/* sanity check: must run privileged */
 	if (geteuid() != 0) return (PAM_PERM_DENIED);
 
-	/*
-	 * sanity checks: must be invoked by normal user, stdin must be
-	 * a pipe and PAM_SM_FUNC must be set (invoked by pam_exec.so).
-	 */
-	ruid = getuid();
-	if (ruid == 0 || isatty(STDIN_FILENO)
-	    || (func = getenv("PAM_SM_FUNC")) == NULL) {
+	/* sanity checks: stdin must be a pipe and PAM_SM_FUNC/PAM_USER must
+	 * be set (invoked by pam_exec.so). */
+	if (isatty(STDIN_FILENO)
+	    || (func = getenv("PAM_SM_FUNC")) == NULL
+	    || (user = getenv("PAM_USER")) == NULL) {
 		(void)fprintf(stderr, "This program is designed for "
 		    "pam_exec.so, don't invoke it directly!\n");
-		return (PAM_PERM_DENIED);
+		return (PAM_SYSTEM_ERR);
 	}
 
 	/* check PAM func, fail silently for anything except authenticate */
 	if (strcmp(func, "pam_sm_authenticate") != 0) return (PAM_SYSTEM_ERR);
 
-	user = getenv("PAM_USER");
-	if (user == NULL) return (PAM_SYSTEM_ERR);
+	/* if invoked as root, don't know any users, pam_unix will work fine */
+	if ((ruid = getuid()) == 0) return (PAM_USER_UNKNOWN);
 
 	/* read password database while privileged */
 	if ((pwd = getpwnam(user)) == NULL) return (PAM_USER_UNKNOWN);
