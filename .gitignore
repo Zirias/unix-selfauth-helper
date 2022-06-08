@@ -4,4 +4,5 @@
 *.gz
 .depend*
 unix-selfauth-helper
+unix-selfauth-helper.8
 

@@ -13,4 +13,9 @@ BINMODE=4555
 
 MANDIR=	${LOCALBASE}/man/man
 
+CLEANFILES+=	${MAN}
+
+${MAN}: ${MAN}.in
+	sed -e 's|&&LOCALBASE&&|${LOCALBASE}|g' <$> >$@
+
 .include <bsd.prog.mk>
