@@ -8,7 +8,6 @@ MAN8=	${MAN}
 LDADD=	-lcrypt
 
 BINDIR=	${LOCALBASE}/libexec
-BINOWN=	root
 BINMODE=4555
 
 MANDIR=	${LOCALBASE}/man/man
