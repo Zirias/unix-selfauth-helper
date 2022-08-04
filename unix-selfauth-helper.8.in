@@ -69,7 +69,7 @@ port, replace &&LOCALBASE&& with %%LOCALBASE%% and include the file in
 .Xr pam_exec 8 ,
 .Xr pam_unix 8
 .Sh AUTHORS
-.An Felix Palmen Aq Mt felix@palmen-it.de
+.An Felix Palmen Aq Mt zirias@FreeBSD.org
 .Sh BUGS
 This is a hack that shouldn't be necessary.
 .Pp
