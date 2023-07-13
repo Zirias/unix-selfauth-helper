@@ -17,10 +17,12 @@ CONFSDIR=	${PREFIX}/etc/pam.d
 
 CLEANFILES+=	${MAN} ${CONFS}
 
+MK_INSTALL_AS_USER=	yes
+
 {${MAN},${CONFS}}: $@.in
 	sed -e 's|%%PREFIX%%|${PREFIX}|g' <$> >$@
 
 beforeinstall:	installdirs
-realinstall:	installconfig
+afterinstall:	installconfig
 
 .include <bsd.prog.mk>
