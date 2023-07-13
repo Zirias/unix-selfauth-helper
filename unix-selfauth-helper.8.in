@@ -39,6 +39,19 @@ every other value is ignored with an error exit status.
 the name of the user to authenticate, must match the user attempting the
 authentication.
 .El
+.Sh FILES
+.Bl -tag
+.It Pa %%PREFIX%%/etc/pam.d/unix-selfauth
+An example PAM policy prepending
+.Nm
+to the
+.Cm auth
+facility and delegating anything else to
+.Pa system .
+This can be used with
+.Cm include
+in your own policy or you can just set a symlink if it is all you need.
+.El
 .Sh EXAMPLES
 .Bd -literal -offset indent
 auth		sufficient	pam_exec.so	\\
@@ -66,7 +79,7 @@ port, replace %%PREFIX%% with %%LOCALBASE%% and include the file in
 .Cm SUB_FILES .
 Alternatively, you can either include or symlink to the
 .Pa unix-selfauth
-PAM policy installed with this tool, it delegates everything to
+PAM policy installed with this utility, it delegates everything to
 .Pa system
 and just prepends the
 .Nm
