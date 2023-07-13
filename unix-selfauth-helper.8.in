@@ -64,6 +64,14 @@ Add them if your service policy needs them.
 Hint for port maintainers: If you want to include a service policy in your
 port, replace %%PREFIX%% with %%LOCALBASE%% and include the file in
 .Cm SUB_FILES .
+Alternatively, you can either include or symlink to the
+.Pa unix-selfauth
+PAM policy installed with this tool, it delegates everything to
+.Pa system
+and just prepends the
+.Nm
+to
+.Cm auth .
 .Sh SEE ALSO
 .Xr passwd 5 ,
 .Xr pam_exec 8 ,
